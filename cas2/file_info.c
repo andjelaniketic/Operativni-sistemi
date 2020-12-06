@@ -9,7 +9,9 @@
 #include <string.h>
 #include <unistd.h> //close, read, write
 #include <stdint.h> //fiksni tipovi
-#include <pwd.h> //passwd struct
+#include <pwd.h> //passwd struct, getpwuid
+#include <grp.h> // group struct, getgrgid
+#include <time.h> //ctime()
 
 #define osAssert(cond, msg) osErrorFatal(cond, msg, __FILE__, __LINE__)
 
@@ -27,45 +29,59 @@ int main(int argc, char **argv){
 	osAssert(2 == argc, "Upotreba: ./file_info putanja");
 	
 	struct stat finfo;
-	osAssert(-1 != stat(argv[1], &finfo), "Dohvatanje informacija o fajlu nije uspelo");
+	char *filePath = argv[1];
 
-	char buf[11] = {0}; //inicijalizacija bloka na 0
+	osAssert(-1 != stat(filePath, &finfo), "Dohvatanje informacija o fajlu nije uspelo");
+
+	char prava_pristupa[11] = {0}; //inicijalizacija bloka na 0
 
 	if(S_ISREG(finfo.st_mode))
 	{
-		buf[0] = '-';
+		prava_pristupa[0] = '-';
 	}else if (S_ISDIR(finfo.st_mode))
 	{
-		buf[0] = 'd';
+		prava_pristupa[0] = 'd';
 	}else if (S_ISSOCK(finfo.st_mode))
 	{
-		buf[0] = 's';
+		prava_pristupa[0] = 's';
 	}else if (S_ISLNK(finfo.st_mode))
 	{
-		buf[0] = 'l';
+		prava_pristupa[0] = 'l';
 	}else if (S_ISFIFO(finfo.st_mode))
 	{
-		buf[0] = 'p';
+		prava_pristupa[0] = 'p';
 	}else if (S_ISBLK(finfo.st_mode))
 	{
-		buf[0] = 'b';
+		prava_pristupa[0] = 'b';
 	}else if (S_ISCHR(finfo.st_mode))
 	{
-		buf[0] = 'c';
+		prava_pristupa[0] = 'c';
 	}
 
-	buf[1] = finfo.st_mode & S_IRUSR ? 'r' : '-';
-	buf[2] = finfo.st_mode & S_IWUSR ? 'w' : '-';
-	buf[3] = finfo.st_mode & S_IXUSR ? 'x' : '-';
+	prava_pristupa[1] = finfo.st_mode & S_IRUSR ? 'r' : '-';
+	prava_pristupa[2] = finfo.st_mode & S_IWUSR ? 'w' : '-';
+	prava_pristupa[3] = finfo.st_mode & S_IXUSR ? 'x' : '-';
 
-	buf[4] = finfo.st_mode & S_IRGRP ? 'r' : '-';
-	buf[5] = finfo.st_mode & S_IWGRP ? 'w' : '-';
-	buf[6] = finfo.st_mode & S_IXGRP ? 'x' : '-';
+	prava_pristupa[4] = finfo.st_mode & S_IRGRP ? 'r' : '-';
+	prava_pristupa[5] = finfo.st_mode & S_IWGRP ? 'w' : '-';
+	prava_pristupa[6] = finfo.st_mode & S_IXGRP ? 'x' : '-';
 
-	buf[7] = finfo.st_mode & S_IROTH ? 'r' : '-';
-	buf[8] = finfo.st_mode & S_IWOTH ? 'w' : '-';
-	buf[9] = finfo.st_mode & S_IXOTH ? 'x' : '-';
+	prava_pristupa[7] = finfo.st_mode & S_IROTH ? 'r' : '-';
+	prava_pristupa[8] = finfo.st_mode & S_IWOTH ? 'w' : '-';
+	prava_pristupa[9] = finfo.st_mode & S_IXOTH ? 'x' : '-';
 
-	printf("%s\n", buf);
+	struct passwd *pUserInfo = getpwuid(finfo.st_uid);
+	osAssert(NULL != pUserInfo, "Dohvatanje podataka o vlasniku nije uspelo");
+
+	struct group *pGroupInfo = getgrgid(finfo.st_gid);
+	osAssert(NULL != pGroupInfo, "DOhvatanje podataka o vlasnickoj grupi nije uspelo");
+
+	char *mtimeStr = ctime(&finfo.st_mtime); //vreme poslednje izmene
+
+	printf("%s %jd %s %s %jd %s %s", 
+		prava_pristupa, (intmax_t)finfo.st_nlink, 
+		pUserInfo->pw_name, pGroupInfo->gr_name,
+		(intmax_t)finfo.st_size, filePath, mtimeStr);
+
 	return 0;
 }
