@@ -1,0 +1,6 @@
+/home/adeline/CLionProjects/hello_window/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/adeline/CLionProjects/hello_window/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/adeline/CLionProjects/hello_window/cmake-build-debug/CMakeFiles/hello_triangle.dir
+/home/adeline/CLionProjects/hello_window/cmake-build-debug/glad/CMakeFiles/edit_cache.dir
+/home/adeline/CLionProjects/hello_window/cmake-build-debug/glad/CMakeFiles/rebuild_cache.dir
+/home/adeline/CLionProjects/hello_window/cmake-build-debug/glad/CMakeFiles/glad.dir
